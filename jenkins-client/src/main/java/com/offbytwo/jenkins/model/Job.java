@@ -113,6 +113,17 @@ public class Job extends BaseModel {
      * Trigger a parameterized build with string parameters only
      *
      * @param params the job parameters
+     * @return {@link QueueReference} for further analysis of the queued build.
+     * @throws IOException in case of an error.
+     */
+    public QueueReference buildWithParams(Map<String, String> params) throws IOException {
+        return buildWithParams(params, null,false);
+    }
+
+    /**
+     * Trigger a parameterized build with string parameters only
+     *
+     * @param params the job parameters
      * @param crumbFlag true or false.
      * @return {@link QueueReference} for further analysis of the queued build.
      * @throws IOException in case of an error.
@@ -148,6 +159,22 @@ public class Job extends BaseModel {
                 .collect(Collectors.joining("&"));
 //        String qs = join(Collections2.transform(params.entrySet(), new MapEntryToQueryStringPair()), "&");
         ExtractHeader location = client.post(url + "buildWithParameters?" + qs,null, ExtractHeader.class, fileParams, crumbFlag);
+        return new QueueReference(location.getLocation());
+    }
+
+    /**
+     * Trigger a parameterized build with file parameters and crumbFlag
+     *
+     * @param params the job parameters
+     * @param fileParams the job file parameters
+     * @param crumbFlag determines whether crumb flag is used
+     * @return {@link QueueReference} for further analysis of the queued build.
+     * @throws IOException in case of an error.
+     */
+    public QueueReference buildWithParams(Map<String, String> params, Map<String, File> fileParams, boolean crumbFlag) throws IOException {
+        //String qs = params.entrySet().stream().map(s -> s.getKey() + "=" + s.getValue()).collect(Collectors.joining("&"));
+        //String qs = join(Collections2.transform(params.entrySet(), new MapEntryToQueryStringPair()), "&");
+        ExtractHeader location = client.post(url + "buildWithParameters",params, ExtractHeader.class, fileParams, crumbFlag);
         return new QueueReference(location.getLocation());
     }
 

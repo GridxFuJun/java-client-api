@@ -35,6 +35,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -46,9 +47,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import com.offbytwo.jenkins.client.util.ResponseUtils;
@@ -229,10 +232,11 @@ public class JenkinsHttpClient implements JenkinsHttpConnection {
         handleCrumbFlag(crumbFlag, request);
 
         if (data != null) {
-            String value = mapper.writeValueAsString(data);
-            StringEntity stringEntity = new StringEntity(value, ContentType.APPLICATION_JSON);
-            request.setEntity(stringEntity);
+            Map<String, String> params = (Map<String, String>)data;
+            List<NameValuePair> nvpList = params.entrySet().stream().map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+            request.setEntity(new UrlEncodedFormEntity(nvpList, Charset.forName("UTF-8")));
         }
+
 
         // Prepare file parameters
         if(fileParams != null && !(fileParams.isEmpty())) {
